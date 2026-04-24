@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Role-Based Access Control RBAC</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #222;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 1150px;
+      margin: auto;
+      padding: 30px 0;
+    }
+
+    .header {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 25px;
+      text-align: center;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+      margin-bottom: 25px;
+    }
+
+    .header h1 {
+      color: #1e3c72;
+      font-size: 34px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 15px;
+    }
+
+    .login-box,
+    .dashboard {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+    }
+
+    .login-box {
+      max-width: 430px;
+      margin: 40px auto;
+      text-align: center;
+    }
+
+    .login-box h2 {
+      color: #1e3c72;
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      margin: 15px 0 7px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 13px;
+      border: 2px solid #ddd;
+      border-radius: 12px;
+      outline: none;
+      font-size: 15px;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #2a5298;
+      box-shadow: 0 0 8px rgba(42, 82, 152, 0.3);
+    }
+
+    button {
+      border: none;
+      padding: 12px 18px;
+      border-radius: 12px;
+      background: #1e3c72;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      margin: 6px;
+    }
+
+    button:hover {
+      background: #2a5298;
+      transform: translateY(-2px);
+    }
+
+    .logout-btn {
+      background: #e63946;
+    }
+
+    .logout-btn:hover {
+      background: #c1121f;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .user-info {
+      background: #eaf2ff;
+      color: #1e3c72;
+      padding: 12px 15px;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+
+    .menu {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .menu button {
+      background: #f1f5ff;
+      color: #1e3c72;
+      border: 2px solid #dbe7ff;
+    }
+
+    .menu button:hover,
+    .menu button.active {
+      background: #1e3c72;
+      color: #fff;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: #f8fbff;
+      border-radius: 18px;
+      padding: 22px;
+      border-left: 6px solid #1e3c72;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .card h3 {
+      color: #1e3c72;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      color: #555;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .alert {
+      display: none;
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      font-weight: bold;
+    }
+
+    .alert.success {
+      display: block;
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #10b981;
+    }
+
+    .alert.error {
+      display: block;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #ef4444;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .permission-box {
+      margin-top: 25px;
+      background: #fff7ed;
+      border-radius: 18px;
+      padding: 20px;
+      border-left: 6px solid #f97316;
+    }
+
+    .permission-box h3 {
+      color: #c2410c;
+      margin-bottom: 10px;
+    }
+
+    .role-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    .role-table th,
+    .role-table td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .role-table th {
+      background: #1e3c72;
+      color: white;
+    }
+
+    .allowed {
+      color: green;
+      font-weight: bold;
+    }
+
+    .denied {
+      color: red;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .header h1 {
+        font-size: 26px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Role-Based Access Control</h1>
+      <p>RBAC system with role hierarchy, protected routes, permission-based APIs, and role-based UI</p>
+    </div>
+
+    <div id="loginSection" class="login-box">
+      <h2>Login</h2>
+      <p>Select a role to test access control</p>
+
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Enter username" />
+
+      <label for="role">Select Role</label>
+      <select id="role">
+        <option value="admin">Admin</option>
+        <option value="manager">Manager</option>
+        <option value="user">User</option>
+      </select>
+
+      <button onclick="login()">Login</button>
+    </div>
+
+    <div id="dashboardSection" class="dashboard hidden">
+      <div class="topbar">
+        <div class="user-info" id="userInfo"></div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <div id="alertBox" class="alert"></div>
+
+      <div class="menu" id="menuBox"></div>
+
+      <div class="content" id="contentBox"></div>
+
+      <div class="permission-box">
+        <h3>Permission-Controlled API Actions</h3>
+        <p>These buttons simulate backend API restrictions.</p>
+        <br />
+        <button onclick="apiRequest('view_users')">View Users API</button>
+        <button onclick="apiRequest('edit_users')">Edit Users API</button>
+        <button onclick="apiRequest('delete_users')">Delete Users API</button>
+        <button onclick="apiRequest('view_reports')">View Reports API</button>
+      </div>
+
+      <div class="permission-box">
+        <h3>Role Hierarchy and Permissions</h3>
+        <table class="role-table">
+          <tr>
+            <th>Role</th>
+            <th>View Users</th>
+            <th>Edit Users</th>
+            <th>Delete Users</th>
+            <th>View Reports</th>
+          </tr>
+          <tr>
+            <td>Admin</td>
+            <td class="allowed">Yes</td>
+            <td class="allowed">Yes</td>
+            <td class="allowed">Yes</td>
+            <td class="allowed">Yes</td>
+          </tr>
+          <tr>
+            <td>Manager</td>
+            <td class="allowed">Yes</td>
+            <td class="allowed">Yes</td>
+            <td class="denied">No</td>
+            <td class="allowed">Yes</td>
+          </tr>
+          <tr>
+            <td>User</td>
+            <td class="denied">No</td>
+            <td class="denied">No</td>
+            <td class="denied">No</td>
+            <td class="allowed">Yes</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const permissions = {
+      admin: ["dashboard", "users", "settings", "reports", "view_users", "edit_users", "delete_users", "view_reports"],
+      manager: ["dashboard", "users", "reports", "view_users", "edit_users", "view_reports"],
+      user: ["dashboard", "reports", "view_reports"]
+    };
+
+    const menuItems = [
+      { name: "Dashboard", route: "dashboard", description: "General dashboard available to all logged-in users." },
+      { name: "Manage Users", route: "users", description: "User management section for Admin and Manager only." },
+      { name: "Settings", route: "settings", description: "System settings section for Admin only." },
+      { name: "Reports", route: "reports", description: "Reports section available according to role permissions." }
+    ];
+
+    let currentUser = null;
+
+    function login() {
+      const username = document.getElementById("username").value.trim();
+      const role = document.getElementById("role").value;
+
+      if (username === "") {
+        alert("Please enter username");
+        return;
+      }
+
+      currentUser = {
+        username: username,
+        role: role
+      };
+
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("dashboardSection").classList.remove("hidden");
+      document.getElementById("userInfo").innerText = `Logged in as: ${username} | Role: ${role.toUpperCase()}`;
+
+      createMenu();
+      openRoute("dashboard");
+      showAlert("success", "Login successful. Role-based access enabled.");
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById("username").value = "";
+      document.getElementById("dashboardSection").classList.add("hidden");
+      document.getElementById("loginSection").classList.remove("hidden");
+    }
+
+    function hasPermission(permission) {
+      return permissions[currentUser.role].includes(permission);
+    }
+
+    function createMenu() {
+      const menuBox = document.getElementById("menuBox");
+      menuBox.innerHTML = "";
+
+      menuItems.forEach(item => {
+        if (hasPermission(item.route)) {
+          const button = document.createElement("button");
+          button.innerText = item.name;
+          button.onclick = () => openRoute(item.route);
+          menuBox.appendChild(button);
+        }
+      });
+    }
+
+    function openRoute(route) {
+      const contentBox = document.getElementById("contentBox");
+
+      if (!hasPermission(route)) {
+        contentBox.innerHTML = `
+          <div class="card">
+            <h3>Access Denied</h3>
+            <p>You are not authorized to access this route.</p>
+          </div>
+        `;
+        showAlert("error", "Unauthorized access blocked.");
+        return;
+      }
+
+      let pageContent = "";
+
+      if (route === "dashboard") {
+        pageContent = `
+          <div class="card">
+            <h3>Dashboard</h3>
+            <p>Welcome to the protected dashboard. This route is available to all authenticated roles.</p>
+          </div>
+          <div class="card">
+            <h3>Current Role</h3>
+            <p>Your current role is <b>${currentUser.role.toUpperCase()}</b>.</p>
+          </div>
+        `;
+      }
+
+      if (route === "users") {
+        pageContent = `
+          <div class="card">
+            <h3>Manage Users</h3>
+            <p>This section allows authorized roles to view and edit user accounts.</p>
+          </div>
+          <div class="card">
+            <h3>User List</h3>
+            <p>Rahul - User<br />Anita - Manager<br />Pimo - Admin</p>
+          </div>
+        `;
+      }
+
+      if (route === "settings") {
+        pageContent = `
+          <div class="card">
+            <h3>Admin Settings</h3>
+            <p>This is an admin-only route. Only users with Admin role can access system settings.</p>
+          </div>
+          <div class="card">
+            <h3>Security Controls</h3>
+            <p>Manage permissions, roles, and authentication rules here.</p>
+          </div>
+        `;
+      }
+
+      if (route === "reports") {
+        pageContent = `
+          <div class="card">
+            <h3>Reports</h3>
+            <p>This route displays system reports based on assigned permissions.</p>
+          </div>
+          <div class="card">
+            <h3>Monthly Report</h3>
+            <p>Total users: 120<br />Active users: 95<br />Blocked users: 5</p>
+          </div>
+        `;
+      }
+
+      contentBox.innerHTML = pageContent;
+      showAlert("success", "Route access granted.");
+    }
+
+    function apiRequest(permission) {
+      if (!currentUser) return;
+
+      if (hasPermission(permission)) {
+        showAlert("success", `API access granted for: ${permission}`);
+      } else {
+        showAlert("error", `API access denied for: ${permission}`);
+      }
+    }
+
+    function showAlert(type, message) {
+      const alertBox = document.getElementById("alertBox");
+      alertBox.className = `alert ${type}`;
+      alertBox.innerText = message;
+
+      setTimeout(() => {
+        alertBox.className = "alert";
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
